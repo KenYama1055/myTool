@@ -4,37 +4,7 @@
 	（任意）シート名「List」
 
 ②「Parameters」シートに以下の各列を作成。（これらは任意の項目で、値が入力されている場合のみコマンドに含まれる）
-	MaxErrors
-	FormatFile
-	ErrorFile
-	FirstRow
-	LastRow
-	BatchSize
-	NativeType
-	CharacterType
-	UnicodeType
-	PreserveNonText
-	FileVersion
-	QuotedIdentifier
-	CodePage
-	FieldTerminator
-	RowTerminator
-	InputFile
-	OutputFile
-	PacketSize
-	ServerNameOption
-	UserName
-	Password
-	TrustedConnection
-	Version
-	RegionalSettings
-	PreserveNulls
-	KeepIdentity
-	AzureAD
-	GenerateXmlFormat
-	DBName
-	ApplicationIntent
-	LoginTimeout
+	MaxErrors	FormatFile	ErrorFile	FirstRow	LastRow	BatchSize	NativeType	CharacterType	UnicodeType	PreserveNonText	FileVersion	QuotedIdentifier	CodePage	FieldTerminator	RowTerminator	InputFile	OutputFile	PacketSize	ServerNameOption	UserName	Password	TrustedConnection	Version	RegionalSettings	PreserveNulls	KeepIdentity	AzureAD	GenerateXmlFormat	DBName	ApplicationIntent	LoginTimeout
 
 ③（任意）「List」シートに各オプションの入力値を作成し、「Parameters」シートの各オプション入力欄の入力規則として設定する。
 
