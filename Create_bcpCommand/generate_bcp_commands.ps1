@@ -39,37 +39,46 @@ foreach ($row in $parameters) {
     # オプションを生成する
     $options = ""
 
-    if ($row.MaxErrors) { $options += " -m $($row.MaxErrors)" } # [-m 最大エラー数]
-    if ($row.FormatFile) { $options += " -f `"$($row.FormatFile)`"" } # [-f フォーマット ファイル]
-    if ($row.ErrorFile) { $options += " -e `"$($row.ErrorFile)`"" } # [-e エラー ファイル]
-    if ($row.FirstRow) { $options += " -F $($row.FirstRow)" } # [-F 先頭行]
-    if ($row.LastRow) { $options += " -L $($row.LastRow)" } # [-L 最終行]
-    if ($row.BatchSize) { $options += " -b $($row.BatchSize)" } # [-b バッチ サイズ]
-    if ($row.NativeType) { $options += " -n" } # [-n ネイティブ型]
-    if ($row.CharacterType) { $options += " -c" } # [-c 文字型]
-    if ($row.UnicodeType) { $options += " -w" } # [-w UNICODE 文字型]
-    if ($row.PreserveNonText) { $options += " -N" } # [-N text 以外のネイティブ型を保持]
-    if ($row.FileVersion) { $options += " -V $($row.FileVersion)" } # [-V ファイル フォーマットのバージョン]
-    if ($row.QuotedIdentifier) { $options += " -q" } # [-q 引用符で囲まれた識別子]
-    if ($row.CodePage) { $options += " -C $($row.CodePage)" } # [-C コード ページ指定子]
-    if ($row.FieldTerminator) { $options += " -t $($row.FieldTerminator)" } # [-t フィールド ターミネータ]
-    if ($row.RowTerminator) { $options += " -r $($row.RowTerminator)" } # [-r 行ターミネータ]
-    if ($row.InputFile) { $options += " -i `"$($row.InputFile)`"" } # [-i 入力ファイル]
-    if ($row.OutputFile) { $options += " -o `"$($row.OutputFile)`"" } # [-o 出力ファイル]
-    if ($row.PacketSize) { $options += " -a $($row.PacketSize)" } # [-a パケット サイズ]
-    if ($row.ServerNameOption) { $options += " -S $($row.ServerNameOption)" } # [-S サーバー名]
-    if ($row.UserName) { $options += " -U $($row.UserName)" } # [-U ユーザー名]
-    if ($row.Password) { $options += " -P $($row.Password)" } # [-P パスワード]
-    if ($row.TrustedConnection -eq "Yes") { $options += " -T" } # [-T 信頼関係接続]
-    if ($row.Version) { $options += " -v" } # [-v バージョン]
-    if ($row.RegionalSettings) { $options += " -R" } # [-R 地域別設定有効]
-    if ($row.PreserveNulls -eq "Yes") { $options += " -k" } # [-k NULL 値を保持]
-    if ($row.KeepIdentity -eq "Yes") { $options += " -E" } # [-E ID 値を保持]
-    if ($row.AzureAD -eq "Yes") { $options += " -G" } # [-G Azure Active Directory 認証]
-    if ($row.GenerateXmlFormat -eq "Yes") { $options += " -x" } # [-x XML フォーマット ファイルを生成]
-    if ($row.DBName) { $options += " -d $($row.DBName)" } # [-d DB 名]
-    if ($row.ApplicationIntent) { $options += " -K $($row.ApplicationIntent)" } # [-K アプリケーション インテント]
-    if ($row.LoginTimeout) { $options += " -l $($row.LoginTimeout)" } # [-l ログイン タイムアウト]
+    # 引数なしのオプションについては"y"(yes)でオプション追加するよう設定。
+    # 使用頻度が高めのオプション
+    if ($row.ServerNameOption) { $options += " -S $($row.ServerNameOption)" } # [-S サーバー名]引数あり
+    if ($row.UserName) { $options += " -U $($row.UserName)" } # [-U ユーザー名]引数あり
+    if ($row.Password) { $options += " -P $($row.Password)" } # [-P パスワード]引数あり
+    if ($row.TrustedConnection -eq "y") { $options += " -T" } # [-T 信頼関係接続]
+    if ($row.DBName) { $options += " -d $($row.DBName)" } # [-d DB 名]引数あり
+    if ($row.FieldTerminator) { $options += " -t $($row.FieldTerminator)" } # [-t フィールド ターミネータ]引数あり
+    if ($row.RowTerminator) { $options += " -r $($row.RowTerminator)" } # [-r 行ターミネータ]引数あり
+    if ($row.PreserveNulls -eq "y") { $options += " -k" } # [-k NULL 値を保持]
+    if ($row.FirstRow) { $options += " -F $($row.FirstRow)" } # [-F 先頭行]引数あり
+    if ($row.LastRow) { $options += " -L $($row.LastRow)" } # [-L 最終行]引数あり
+    if ($row.FormatOption) { $options += " -c $($row.FormatOption)" } # フォーマットオプション [-c 文字型]/[-n ネイティブ型]/[-w UNICODE文字型]/[-N text以外のネイティブ型を保持]
+    if ($row.GenerateXmlFormat -eq "y") { $options += " -x" } # [-x XML フォーマット ファイルを生成]
+    if ($row.FormatFile) { $options += " -f `"$($row.FormatFile)`"" } # [-f フォーマット ファイル]引数あり
+    if ($row.OutputFile) { $options += " -o `"$($row.OutputFile)`"" } # [-o 出力ファイル]引数あり
+
+    # 使用頻度が低めのオプション
+    if ($row.MaxErrors) { $options += " -m $($row.MaxErrors)" } # [-m 最大エラー数]引数あり
+    if ($row.ErrorFile) { $options += " -e `"$($row.ErrorFile)`"" } # [-e エラー ファイル]引数あり
+    if ($row.BatchSize) { $options += " -b $($row.BatchSize)" } # [-b バッチ サイズ]引数あり
+
+    #フォーマットオプション [-c]/[-n]/[-w]/[-N]については併用できないオプションのため、変数名「FormatOption」として取りまとめる。
+    # if ($row.CharacterType -eq "y") { $options += " -c" } # [-c 文字型]
+    # if ($row.NativeType -eq "y") { $options += " -n" } # [-n ネイティブ型]
+    # if ($row.UnicodeType -eq "y") { $options += " -w" } # [-w UNICODE 文字型]
+    # if ($row.PreserveNonText -eq "y") { $options += " -N" } # [-N text 以外のネイティブ型を保持]
+
+    if ($row.FileVersion) { $options += " -V $($row.FileVersion)" } # [-V ファイル フォーマットのバージョン]引数あり
+    if ($row.QuotedIdentifier -eq "y") { $options += " -q" } # [-q 引用符で囲まれた識別子]
+    if ($row.CodePage) { $options += " -C $($row.CodePage)" } # [-C コード ページ指定子]引数あり
+    if ($row.InputFile) { $options += " -i `"$($row.InputFile)`"" } # [-i 入力ファイル]引数あり
+    if ($row.PacketSize) { $options += " -a $($row.PacketSize)" } # [-a パケット サイズ]引数あり
+    # if ($row.Version -eq "y") { $options += " -v" } # [-v バージョン]
+    if ($row.RegionalSettings -eq "y") { $options += " -R" } # [-R 地域別設定有効]
+    if ($row.KeepIdentity -eq "y") { $options += " -E" } # [-E ID 値を保持]
+    if ($row.AzureAD -eq "y") { $options += " -G" } # [-G Azure Active Directory 認証]
+    if ($row.LoadHints) { $options += " -h `"$($row.LoadHints)`"" }# [-h "読み込みヒント"]引数あり
+    if ($row.ApplicationIntent) { $options += " -K $($row.ApplicationIntent)" } # [-K アプリケーション インテント]引数あり
+    if ($row.LoginTimeout) { $options += " -l $($row.LoginTimeout)" } # [-l ログイン タイムアウト]引数あり
 
     # BCPコマンドの生成
     $bcpCommand = "bcp $($tableName) $($direction) `"$($dataFilePath)`" $options"

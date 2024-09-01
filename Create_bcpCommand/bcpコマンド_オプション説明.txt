@@ -1,0 +1,292 @@
+■基本的なルール
+1.コマンドの構造は以下の通り。
+	bcp {database_name}.{schema_name}.{table_name} {in|out|queryout|format} {datafile} [オプション]
+	例）bcp mydb.dbo.mytable out datafile.txt -S myserver -U myuser -P mypassword
+	mydb.dbo.mytable：対象のデータベースとテーブル名。
+	out：エクスポート操作を示すキーワード（inはインポート、queryoutはクエリの結果を出力、formatはフォーマットファイルの作成）。
+	datafile.txt：データをエクスポートするファイル。
+
+2.コマンドの必須パラメータの順序
+	最初の引数はテーブルまたはビューの名前。
+	2番目の引数は操作の種類（in、out、queryout、formatなど）。
+	3番目の引数はデータファイルの名前（もしくはformatの際はnul）。
+	これらの引数は固定の順序で指定する必要がある。
+
+3.併用できないオプション
+	・-Uと-T
+		理由：-UはSQL Server認証を前提としており、-TはWindows認証を前提としているため、同時に使用することはできない。
+	・-Pと-T
+		理由：-PはSQL Server認証用のオプションであり、-TはWindows認証を使用するため、両方を同時に使用することはできない。
+	・-Gと-T
+	・-n,-c,-w,-Nなどのフォーマットオプション
+		理由：データのフォーマットは一つしか指定できないため、複数のフォーマットオプションを同時に指定することは無効となる。
+	・-fと-n,-c,-w,-Nなどのフォーマットオプション
+		理由：フォーマットファイルが既にデータのフォーマットを定義しているため、追加で別のフォーマット指定をすることは無意味となる。
+	・-xと-f
+		理由：-xは新しいXML形式のフォーマットファイルを作成するためのオプションであり、既存のフォーマットファイルを使用することと相反するため、併用できない。
+		フォーマットファイルを生成する際に-xオプションを使用する場合、-fオプションで指定するファイル名を.xmlにする必要がある。
+
+■各オプション使用方法
+-- 使用頻度が高めのオプション
+1. -S サーバ名
+	意味：SQLServerのサーバ名を指定する。
+	例）サーバ名「myserver」を指定してデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword
+
+2. -U ユーザ名
+	意味：SQLServerに接続するためのユーザ名を指定する。
+	例）「myuser」というユーザ名で接続してデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword
+
+3. -P バスワード
+	意味：SQLServerに接続するためのパスワードを指定する。
+	例）「mypassword」というパスワードで接続してデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword
+
+4. -T 信頼関係接続
+	意味：Windows認証を使用してSQLServer接続する。-U および -Pオプションとは併用不可。
+	例）Windows認証で接続してデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -T
+
+5. -d DB名
+	意味：データベース名を指定する。接続するサーバー上でのデフォルトデータベース以外を指定する場合に使用する。インポート先を誤らぬよう、常に当オプションでDB名を指定することを推奨。
+	例）特定のデータベースを指定してデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -d mydatabase
+
+6. -t フィールドターミネータ
+	意味：フィールドの区切り文字を指定する。
+	例）カンマ「,」をフィールドの区切り文字として使用する。
+	bcp mydb.dbo.mytable out datafile.csv -S myserver -U myuser -P mypassword -c -t ","
+
+7. -r 行ターミネータ
+	意味：行の区切り文字を指定する。
+	例）改行「\n」を行の区切り文字として使用する。
+	bcp mydb.dbo.mytable out datafile.txt -S myserver -U myuser -P mypassword -c -r "\n"
+
+8. -k NULL値を保持
+	意味：NULL値を含む列を無視せず、テーブルにNULL値を挿入する。
+	例）NULL値を保持してデーtをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -k
+
+9. -F 先頭行
+	意味：処理を開始する行番号を指定する。データファイルの先頭から読み込むのではなく、指定された行から読み込む。
+	例）データファイルの5行目からインポートを開始する。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -F 5
+
+10.-L 最終行
+	意味：処理を終了する行番号を指定する。
+	例）データファイルの1行目から10行目までをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -F 1 -L 10
+	
+11.-c 文字型
+	意味：文字型フォーマットを使用してデータをエクスポートまたはインポートする。データはテキストファイルとして保存される。
+	例）文字型でデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -c
+
+12.-x XMLフォーマットファイルを生成
+	意味：XML形式のフォーマットファイルを生成する。従来の非XMLフォーマットファイルよりも柔軟性がある。
+	例）XML形式のフォーマットファイルを生成する。
+	bcp mydb.dbo.mytable format nul -S myserver -U myuser -P mypassword -x -f formatfile.xml
+
+13.-f フォーマットファイル
+	意味：フォーマットファイル（インポートまたはエクスポートするデータの構造を定義するファイル）を使用する。
+	例）フォーマットファイル「formatfile.fmt」を使用してデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -f formatfile.fmt
+
+-- 使用頻度が低めのオプション
+14.-m 最大エラー数
+	意味：最大許容エラー数を指定する。この数を超えるエラーが発生した場合、操作が中止される。
+	例）10件のエラーが発生したら操作を中止する。
+	bcp mydb.dbo.mytable out datafile.txt -S myserver -U myuser -P mypassword -m 10
+
+15.-e エラーファイル
+	意味：エラーが発生した行を保存するファイルを指定する。
+	例）「errorfile.txt」にエラーが発生した行を保存する。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -e errorfile.txt
+
+16.-b バッチサイズ
+	意味：バッチのサイズを指定する。指定された行数ごとにトランザクションがコミットされる。
+	例）1000行ごとにトランザクションをコミットする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -b 1000
+
+17.-n ネイティブ型
+	意味：ネイティブ型フォーマットを使用してデータをエクスポートまたはインポートする。このオプションはSQLServerのバイナリデータ形式を使用する。
+	例）ネイティブ型でデータをエクスポートする。
+	bcp mydb.dbo.mytable out datafile.dat -S myserver -U myuser -P mypassword -n
+
+18.-w UNICODE文字型
+	意味：UNICODE文字型フォーマットを使用してデータをエクスポートまたはインポートする。
+	例）UNICODE文字型でデータをエクスポートする。
+	bcp mydb.dbo.mytable out datafile.txt -S myserver -U myuser -P mypassword -w
+
+19.-N text以外のネイティブ型を保持
+	意味：すべての非テキスト型データをネイティブ型として保持する。
+	例）ネイティブ型を保持してエクスポートする。
+	bcp mydb.dbo.mytable out datafile.dat -S myserver -U myuser -P mypassword -N
+
+20.-v ファイルフォーマットのバージョン
+	意味：フォーマットファイルのバージョンを指定する。
+	例）フォーマットファイルのバージョンを90（SQLServer 2005のバージョン）に設定する。⇒ほんとうに2005なのか確認する必要あり。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -f formatfile.fmt -V 90
+
+21.-q 引用符で囲まれた識別子
+	意味：SQLServerで識別子を引用符で囲むために使用する。
+	例）引用符で囲まれた識別子を使用してテーブルを指定する。
+	bcp "mydb.dbo.[my table]" in datafile.txt -S myserver -U myuser -P mypassword -q
+
+22.-C コードページ指定子
+	意味：データファイルのコードページを指定する。
+	例）1252（Windows Latin-1）のコードページを使用する。
+	bcp mydb.dbo.mytable out datafile.txt -S myserver -U myuser -P mypassword -C 1252
+
+23.-i 入力ファイル
+	意味：インポートするデータを含む入力ファイルを指定する。⇒何のため？
+	例）入力ファイル「datafile.txt」を使用してデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -i inputfile.txt
+
+24.-o 出力ファイル
+	意味：エクスポートするデータを含む出力ファイルを指定する。⇒何のため？
+	例）出力ファイル「outputfile.txt」にデータをエクスポートする。
+	bcp mydb.dbo.mytable out outputfile.txt -S myserver -U myuser -P mypassword -o outputfile.txt
+
+25.-a パケットサイズ
+	意味：ネットワークのパケットサイズを指定する。⇒何のため？
+	例）4096バイトのパケットサイズを指定する。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -a 4096
+
+26.-v バージョン
+	意味：bcpユーティリティのバージョン情報を表示する。
+	例）バージョン情報を表示する。
+	bcp -v
+
+27.-R 地域別設定有効
+	意味：クライアントのロケール設定を有効にする。データファイル内の日付と時刻の書式がロケールに依存する場合に使用する。
+	例）クライアントのロケール設定を有効にしてインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -R
+
+28.-E ID値を保持
+	意味：IDENTITY列の値を保持する。通常、SQLServerはIDENTITY列に自動的に値を生成するが、このオプションを使用するとファイル内の値をそのまま使用できる。
+	例）IDENTITY列の値を保持してデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -E
+
+29.-G AzureActiveDirectory認証
+	意味：Azure Active Directory統合認証を使用してSQL Serverに接続する。このオプションを使用するには、Azure ADアカウントが必要となる。
+	例）Azure Active Directory統合認証を使用してデータをエクスポートする。
+	bcp mydb.dbo.mytable out datafile.txt -S myserver.database.windows.net -G
+
+30.-h 読み込みヒント
+	意味：データをインポートする際のヒントを指定する。例えば、「TABLOCK」などのヒントを指定することで、大量データのインポートパフォーマンスを向上させることが可能になる。
+	例）「TABLOCK」ヒントを使用してデータをインポートする。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -h "TABLOCK"
+
+31.-K アプリケーション インテント
+	意味：アプリケーションのインテントを指定する（たとえば「ReadOnly」）。AlwaysOnアベイラビリティグループを使用する場合に指定できる。⇒「読み取り専用」がついたものだけを読み込むことができるってこと？
+	例）「ResdOnly」インテントを指定してデータをエクスポートする。
+	bcp mydb.dbo.mytable out datafile.txt -S myserver -U myuser -P mypassword -K ReadOnly
+
+32.-l ログインタイムアウト
+	意味：SQLServerに接続するためのログインタイムアウト（数秒）を指定する。デフォルトは15秒。
+	例）ログインタイムアウトを60秒に指定する。
+	bcp mydb.dbo.mytable in datafile.txt -S myserver -U myuser -P mypassword -l 60
+
+
+■引数が必要なオプション
+1. -S サーバー名
+	意味：SQL Server のサーバー名を指定する。
+	引数：サーバー名またはインスタンス名。
+	例）-S myserver
+
+2. -U ユーザー名
+	意味：SQL Server に接続するためのユーザー名を指定する。
+	引数：ユーザー名。
+	例）-U myuser
+
+3. -P パスワード
+	意味：SQL Server に接続するためのパスワードを指定する。
+	引数：パスワード。
+	例）-P mypassword
+
+4. -m 最大エラー数
+	意味：許容する最大エラー数を指定する。指定した数を超えるエラーが発生した場合、bcp 操作が中止される。
+	引数：最大エラー数（数値）。
+	例）-m 10
+
+5. -f フォーマット ファイル
+	意味：フォーマットファイルのパスを指定する。データの構造を定義するために使用する。
+	引数：フォーマットファイルのパス。
+	例）-f formatfile.fmt
+
+6. -e エラー ファイル
+	意味：エラーが発生した行を記録するエラーファイルのパスを指定する。
+	引数：エラーファイルのパス。
+	例）-e errorfile.txt
+
+7. -F 先頭行
+	意味：処理を開始するデータファイルの先頭行を指定する。
+	引数：行番号（数値）。
+	例）-F 5
+
+8. -L 最終行
+	意味：処理を終了するデータファイルの行番号を指定する。
+	引数：行番号（数値）。
+	例）-L 1000
+
+9. -b バッチ サイズ
+	意味：1バッチで処理する行数を指定する。バッチサイズを指定することで、処理を分割して実行できる。
+	引数：バッチサイズ（数値）。
+	例）-b 1000
+
+10.-V ファイル フォーマットのバージョン
+	意味：フォーマットファイルのバージョンを指定する（例：80、90 など）。バージョンによって SQL Server の異なるバージョンの互換性を管理する。
+	引数：バージョン番号（数値）。
+	例）-V 90
+
+11.-C コード ページ指定子
+	意味：データファイルの文字セット（コードページ）を指定する。
+	引数：コードページ番号（例：1252、65001など）。
+	例）-C 65001（UTF-8）
+
+12.-t フィールド ターミネータ
+	意味：フィールド（列）の区切り文字を指定する。
+	引数：区切り文字（例：,、\t）。
+	例）-t ,
+
+13.-r 行ターミネータ
+	意味：行の区切り文字を指定する。
+	引数：区切り文字（例：\n、\r\n）。
+	例）-r \n
+
+14.-i 入力ファイル
+	意味：インポートするデータを含む入力ファイルのパスを指定する。
+	引数：入力ファイルのパス。
+	例）-i inputfile.txt
+
+15.-o 出力ファイル
+	意味：エクスポートしたデータを保存する出力ファイルのパスを指定する。
+	引数：出力ファイルのパス。
+	例）-o outputfile.txt
+
+16.-a パケット サイズ
+	意味：1つのパケットのサイズ（バイト単位）を指定する。通常、パケットサイズの調整はネットワークパフォーマンスに影響する。
+	引数：パケットサイズ（数値）。
+	例）-a 4096
+
+17.-d DB 名
+	意味：データベース名を指定する。接続するSQL Serverのデフォルトデータベースではない場合に使用する。
+	引数：データベース名。
+	例）-d mydatabase
+
+18.-K アプリケーション インテント
+	意味：アプリケーションのインテント（目的）を指定する（例：ReadOnly）。
+	引数：インテント（例：ReadOnly）。
+	例）-K ReadOnly
+
+19.-l ログイン タイムアウト
+	意味：SQL Serverへのログインのタイムアウトを指定する（秒単位）。
+	引数：タイムアウト時間（数値）。
+	例）-l 60
+
+20.-h "読み込みヒント"
+	意味：テーブルヒントを指定する（例："TABLOCK"、"CHECK_CONSTRAINTS" など）。
+	引数：テーブルヒント（文字列）。
+	例）-h "TABLOCK, CHECK_CONSTRAINTS"
